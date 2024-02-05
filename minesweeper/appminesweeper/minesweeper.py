@@ -45,7 +45,6 @@ class MineSweepers(object):
         visited = set()
 
         while stack:
-            found_zero = False
             x, y = stack.pop()
             if (x, y) in visited:
                 continue
@@ -53,7 +52,6 @@ class MineSweepers(object):
 
             if current_field[x][y] == 0:
                 self.field[x][y] = 0
-                found_zero = True
 
             for nx, ny in ((x + 1, y), (x - 1, y), (x, y - 1), (x, y + 1),
                            (x - 1, y - 1), (x - 1, y + 1),
@@ -63,6 +61,4 @@ class MineSweepers(object):
                         stack.append((nx, ny))
                     if isinstance(current_field[nx][ny], int):
                         self.field[nx][ny] = current_field[nx][ny]
-            if not found_zero:
-                break
         return self.field
