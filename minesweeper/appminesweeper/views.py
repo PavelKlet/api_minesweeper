@@ -39,7 +39,7 @@ class MineSweeperTurnAPIView(APIView):
         if mine_sweeper.completed:
             return Response(status=status.HTTP_400_BAD_REQUEST,
                             data={"error": "Игра завершена"})
-        if mine_sweeper.field[row][col] != " ":
+        elif mine_sweeper.field[row][col] != " ":
             return Response(status=status.HTTP_400_BAD_REQUEST,
                             data={"error": "Уже открытая ячейка"})
 
