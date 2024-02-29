@@ -38,38 +38,39 @@ class MineSweeperTurnAPIView(APIView):
 
         if mine_sweeper.completed:
             return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data={"error": "Произошла непредвиденная ошибка"})
+                            data={"error": "Игра завершена"})
         if mine_sweeper.field[row][col] != " ":
             return Response(status=status.HTTP_400_BAD_REQUEST,
                             data={"error": "Уже открытая ячейка"})
 
-        if open_field[row][col] == 0:
-            mine_sweeper.field = obj_minesweeper.count_zero(row, col, open_field)
-        elif open_field[row][col] == "X":
-            mine_sweeper.field = open_field
-            mine_sweeper.completed = True
-            mine_sweeper.save()
-            serializer = MineSweeperSerializer(mine_sweeper)
-            return Response(data=serializer.data)
+        handlers = {
+           "X": [obj_minesweeper.handle_mine, (mine_sweeper, open_field)],
+           0: [obj_minesweeper.handle_zero, (row, col, open_field)],
+           int: [obj_minesweeper.handle_number, (field, open_field, row, col)]
+        }
+
+        if open_field[row][col] in handlers:
+            handler, params = handlers.get(open_field[row][col])
         elif isinstance(open_field[row][col], int):
-            mine_sweeper.field[row][col] = open_field[row][col]
+            handler, params = handlers.get(int)
+        else:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"error": "Произошла непредвиденная ошибка"}
+            )
 
-        win = True
-        for cells in range(len(mine_sweeper.field)):
-            for cell in range(len(mine_sweeper.field[cells])):
-                if (mine_sweeper.field[cells][cell] == " "
-                        and mine_sweeper.open_field[cells][cell] != "X"):
-                    win = False
-                    break
+        mine_sweeper.field = handler(*params)
 
-        if win:
-            mine_sweeper.field = open_field
-            for cells in mine_sweeper.field:
-                for cell in cells:
-                    if cell == "X":
-                        cells[cells.index(cell)] = "M"
-            mine_sweeper.completed = True
+        if not mine_sweeper.completed:
+            check_result = obj_minesweeper.check_win(
+                mine_sweeper,
+                mine_sweeper.field,
+                open_field
+            )
+            if check_result:
+                mine_sweeper.field = check_result
 
         mine_sweeper.save()
         serializer = MineSweeperSerializer(mine_sweeper)
         return Response(serializer.data)
+

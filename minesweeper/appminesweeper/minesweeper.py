@@ -62,3 +62,33 @@ class MineSweepers(object):
                     if isinstance(current_field[nx][ny], int):
                         self.field[nx][ny] = current_field[nx][ny]
         return self.field
+
+    def handle_zero(self, row, col, open_field):
+        return self.count_zero(row, col, open_field)
+
+    @staticmethod
+    def handle_mine(mine_sweeper, open_field):
+        mine_sweeper.completed = True
+        return open_field
+
+    @staticmethod
+    def handle_number(field, open_field, row, col):
+        field[row][col] = open_field[row][col]
+        return field
+
+    @staticmethod
+    def check_win(mine_sweeper, field, open_field):
+
+        for cells in range(len(field)):
+            for cell in range(len(field[cells])):
+                if (field[cells][cell] == " "
+                        and open_field[cells][cell] != "X"):
+                    return False
+
+        field = open_field
+        for cells in field:
+            for cell in cells:
+                if cell == "X":
+                    cells[cells.index(cell)] = "M"
+        mine_sweeper.completed = True
+        return field
