@@ -13,10 +13,11 @@ class MineSweeperNewAPIView(APIView):
 
         if serializer.is_valid(raise_exception=True):
             mine_sweeper = serializer.save()
-            obj_minesweeper = MineSweepers(width=mine_sweeper.width,
-                                           height=mine_sweeper.height,
-                                           mines_count=mine_sweeper.mines_count,
-                                           )
+            obj_minesweeper = MineSweepers(
+                width=mine_sweeper.width,
+                height=mine_sweeper.height,
+                mines_count=mine_sweeper.mines_count,
+            )
             mine_sweeper.field = obj_minesweeper.field
             mine_sweeper.open_field = obj_minesweeper.lay_mines()
             mine_sweeper.save()
@@ -32,21 +33,27 @@ class MineSweeperTurnAPIView(APIView):
         mine_sweeper = MineSweeper.objects.get(game_id=game_id)
         field = mine_sweeper.field
         open_field = mine_sweeper.open_field
-        obj_minesweeper = MineSweepers(mine_sweeper.width,
-                                       mine_sweeper.height,
-                                       mine_sweeper.mines_count, field=field)
+        obj_minesweeper = MineSweepers(
+            mine_sweeper.width,
+            mine_sweeper.height,
+            mine_sweeper.mines_count,
+            field=field,
+        )
 
         if mine_sweeper.completed:
-            return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data={"error": "Игра завершена"})
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data={"error": "Игра завершена"}
+            )
         elif mine_sweeper.field[row][col] != " ":
-            return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data={"error": "Уже открытая ячейка"})
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"error": "Уже открытая ячейка"},
+            )
 
         handlers = {
-           "X": [obj_minesweeper.handle_mine, (mine_sweeper, open_field)],
-           0: [obj_minesweeper.handle_zero, (row, col, open_field)],
-           int: [obj_minesweeper.handle_number, (field, open_field, row, col)]
+            "X": [obj_minesweeper.handle_mine, (mine_sweeper, open_field)],
+            0: [obj_minesweeper.handle_zero, (row, col, open_field)],
+            int: [obj_minesweeper.handle_number, (field, open_field, row, col)],
         }
 
         if open_field[row][col] in handlers:
@@ -56,16 +63,14 @@ class MineSweeperTurnAPIView(APIView):
         else:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"error": "Произошла непредвиденная ошибка"}
+                data={"error": "Произошла непредвиденная ошибка"},
             )
 
         mine_sweeper.field = handler(*params)
 
         if not mine_sweeper.completed:
             check_result = obj_minesweeper.check_win(
-                mine_sweeper,
-                mine_sweeper.field,
-                open_field
+                mine_sweeper, mine_sweeper.field, open_field
             )
             if check_result:
                 mine_sweeper.field = check_result
@@ -73,4 +78,3 @@ class MineSweeperTurnAPIView(APIView):
         mine_sweeper.save()
         serializer = MineSweeperSerializer(mine_sweeper)
         return Response(serializer.data)
-

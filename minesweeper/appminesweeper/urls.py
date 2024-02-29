@@ -5,5 +5,5 @@ appname = "appminesweeper"
 
 urlpatterns = [
     path("new", MineSweeperNewAPIView.as_view(), name="new"),
-    path("turn", MineSweeperTurnAPIView.as_view(), name="turn")
+    path("turn", MineSweeperTurnAPIView.as_view(), name="turn"),
 ]
